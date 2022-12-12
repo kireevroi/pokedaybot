@@ -1,11 +1,38 @@
 package main
 
 import (
-    "github.com/Syfaro/telegram-bot-api"
+    "github.com/go-telegram-bot-api/telegram-bot-api/v5"
     "os"
-		"github.com/joho/godotenv"
-		"log"
+	"github.com/joho/godotenv"
+    "net/http"
+	"log"
+    "io/ioutil"
+    "encoding/json"
+    "math/rand"
+    "time"
 )
+
+
+type Response struct {
+    Name    string    `json:"name"`
+    Pokemon []Pokemon `json:"pokemon_entries"`
+}
+
+type Pokemon struct {
+    EntryNo int            `json:"entry_number"`
+    Species PokemonSpecies `json:"pokemon_species"`
+}
+
+type PokemonSpecies struct {
+    Name string `json:"name"`
+}
+
+func getRandomPokemon(response Response) string {
+    s := rand.NewSource(time.Now().UnixNano())
+    r := rand.New(s)
+    ret := response.Pokemon[r.Intn(len(response.Pokemon))].Species.Name
+    return "I'm a *" + ret + "* today\\!"
+}
 
 func telegramBot() {
 		err := godotenv.Load("token.env")
@@ -16,26 +43,51 @@ func telegramBot() {
     if err != nil {
         panic(err)
     }
+    pokecache:= fetchPokemon()
     //Устанавливаем время обновления
     u := tgbotapi.NewUpdate(0)
     u.Timeout = 60
     //Получаем обновления от бота
-    updates, err := bot.GetUpdatesChan(u)
-		if err == nil {
-			log.Println("No error");
-		}
-    for update := range updates {
-        if update.Message == nil {
-            continue
-        }
-        //Проверяем что от пользователья пришло именно текстовое сообщение
-        if update.Message.Text != "" {
-					log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
-					msg.ReplyToMessageID = update.Message.MessageID
-					bot.Send(msg)
-				}
+    updates := bot.GetUpdatesChan(u)
+	if err == nil {
+		log.Println("No error");
+	}
+    if err != nil {
+        log.Fatal(err)
     }
+
+    for update := range updates {
+    
+        article := tgbotapi.NewInlineQueryResultArticleMarkdownV2("1", "What Pokemon are you today?", getRandomPokemon(pokecache))
+        article.Description = "Choose your Pokemon!"
+        article.ThumbURL = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Pokebola-pokeball-png-0.png/800px-Pokebola-pokeball-png-0.png"
+    
+        inlineConf := tgbotapi.InlineConfig{
+            InlineQueryID: update.InlineQuery.ID,
+            IsPersonal:    true,
+            CacheTime:     3600 * 24,
+            Results:       []interface{}{article},
+        }
+    
+        if _, err := bot.Request(inlineConf); err != nil {
+            log.Println(err)
+        }
+    }
+}
+
+func fetchPokemon() Response {
+    //var res string
+    response, err := http.Get("http://pokeapi.co/api/v2/pokedex/kanto/")
+    if err != nil {
+        log.Println(err)
+    }
+    responseData, err := ioutil.ReadAll(response.Body)
+    if err != nil {
+        log.Println(err)
+    }
+    var responseObject Response
+    json.Unmarshal(responseData, &responseObject)
+    return responseObject
 }
 
 func main() {
