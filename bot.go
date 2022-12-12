@@ -30,10 +30,25 @@ type PokemonSpecies struct {
 func getRandomPokemon(response Response) string {
     s := rand.NewSource(time.Now().UnixNano())
     r := rand.New(s)
-    ret := response.Pokemon[r.Intn(len(response.Pokemon))].Species.Name
-    return "I'm a *" + ret + "* today\\!"
+    pokemon := response.Pokemon[r.Intn(len(response.Pokemon))].Species.Name
+    ret := "a"
+    if firstChar := pokemon[0:1]; isVowel(firstChar) {
+        ret += "n"
+    }
+    return "I'm " + ret + " *" + pokemon + "* today\\!"
 }
-
+func isVowel(char string) bool {
+    switch char {
+    case
+        "a",
+        "o",
+        "u",
+        "i",
+        "e":
+        return true
+    }
+    return false
+}
 func telegramBot() {
 		err := godotenv.Load("token.env")
 		if err != nil {
@@ -65,7 +80,7 @@ func telegramBot() {
         inlineConf := tgbotapi.InlineConfig{
             InlineQueryID: update.InlineQuery.ID,
             IsPersonal:    true,
-            CacheTime:     3600 * 24,
+            CacheTime:     1,
             Results:       []interface{}{article},
         }
     
