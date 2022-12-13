@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"time"
+    "strings"
 )
 
 type Response struct {
@@ -41,7 +42,8 @@ func a_an(str string) string {
 	return ret
 }
 func pokeToString(pokemon Pokemon) string {
-	return "I'm " + a_an(pokemon.Species.Name) + " *" + pokemon.Species.Name + "* today\\!"
+    
+	return "I'm " + a_an(pokemon.Species.Name) + " *" + strings.Replace(pokemon.Species.Name, "-", "\\-", -1) + "* today\\!"
 }
 func getPokemonUrl(pokemon Pokemon) string {
 	num := pokemon.EntryNo
