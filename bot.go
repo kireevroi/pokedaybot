@@ -10,6 +10,7 @@ import (
     "encoding/json"
     "math/rand"
     "time"
+    "fmt"
 )
 
 
@@ -27,15 +28,27 @@ type PokemonSpecies struct {
     Name string `json:"name"`
 }
 
-func getRandomPokemon(response Response) string {
+func getRandomPokemon(response Response) Pokemon {
     s := rand.NewSource(time.Now().UnixNano())
     r := rand.New(s)
-    pokemon := response.Pokemon[r.Intn(len(response.Pokemon))].Species.Name
+    pokemon := response.Pokemon[r.Intn(len(response.Pokemon))]
+    return pokemon
+}
+func a_an(str string) string {
     ret := "a"
-    if firstChar := pokemon[0:1]; isVowel(firstChar) {
+    if firstChar := str[0:1]; isVowel(firstChar) {
         ret += "n"
     }
-    return "I'm " + ret + " *" + pokemon + "* today\\!"
+    return ret
+}
+func pokeToString(pokemon Pokemon) string {
+    return "I'm " + a_an(pokemon.Species.Name) + " *" + pokemon.Species.Name + "* today\\!"
+}
+func getPokemonUrl(pokemon Pokemon) string {
+    num := pokemon.EntryNo
+    s := fmt.Sprintf("%03d", num)
+    ret := "https://kireevroman.com/pokemon/" + s + ".jpeg"
+    return ret
 }
 func isVowel(char string) bool {
     switch char {
@@ -73,17 +86,21 @@ func telegramBot() {
 
     for update := range updates {
     
-        article := tgbotapi.NewInlineQueryResultArticleMarkdownV2("1", "What Pokemon are you today?", getRandomPokemon(pokecache))
+        pokemon := getRandomPokemon(pokecache)
+        ThumbURL := getPokemonUrl(pokemon)
+        article := tgbotapi.NewInlineQueryResultPhoto("1", getPokemonUrl(pokemon))
+        article.Caption = pokeToString(pokemon)
         article.Description = "Choose your Pokemon!"
-        article.ThumbURL = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Pokebola-pokeball-png-0.png/800px-Pokebola-pokeball-png-0.png"
-    
+        article.ThumbURL = ThumbURL
+        article.Width = 150
+        article.Height = 150
+        article.ParseMode="MarkdownV2"
         inlineConf := tgbotapi.InlineConfig{
             InlineQueryID: update.InlineQuery.ID,
             IsPersonal:    true,
             CacheTime:     1,
             Results:       []interface{}{article},
         }
-    
         if _, err := bot.Request(inlineConf); err != nil {
             log.Println(err)
         }
@@ -92,7 +109,7 @@ func telegramBot() {
 
 func fetchPokemon() Response {
     //var res string
-    response, err := http.Get("http://pokeapi.co/api/v2/pokedex/kanto/")
+    response, err := http.Get("http://pokeapi.co/api/v2/pokedex/national/")
     if err != nil {
         log.Println(err)
     }
@@ -105,6 +122,8 @@ func fetchPokemon() Response {
     return responseObject
 }
 
+
 func main() {
+    //test()
     telegramBot()
 }
