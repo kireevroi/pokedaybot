@@ -90,7 +90,8 @@ func telegramBot() {
             msg := tgbotapi.NewMessage(update.Message.Chat.ID, "This is an inline bot, please call using @pokedaybot, thx!")
             bot.Send(msg)
 			continue
-		} else {
+		}
+		if update.InlineQuery.Query == "" {
 			pokemon := getRandomPokemon(pokecache)
 			ThumbURL := getPokemonUrl(pokemon)
 			article := tgbotapi.NewInlineQueryResultPhoto("1", getPokemonUrl(pokemon))
