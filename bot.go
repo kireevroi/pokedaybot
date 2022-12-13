@@ -85,7 +85,8 @@ func telegramBot() {
 
 	for update := range updates {
 		if update.Message != nil {
-			log.Println("Quit trying pls")
+            msg := tgbotapi.NewMessage(update.Message.Chat.ID, "This is an inline bot, please call using @pokedaybot, thx!")
+            bot.Send(msg)
 			continue
 		} else {
 			pokemon := getRandomPokemon(pokecache)
