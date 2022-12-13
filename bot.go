@@ -90,7 +90,7 @@ func telegramBot() {
         ThumbURL := getPokemonUrl(pokemon)
         article := tgbotapi.NewInlineQueryResultPhoto("1", getPokemonUrl(pokemon))
         article.Caption = pokeToString(pokemon)
-        article.Description = "Choose your Pokemon!"
+        article.Description = "Choose your Pokémon!"
         article.ThumbURL = ThumbURL
         article.Width = 256
         article.Height = 256
