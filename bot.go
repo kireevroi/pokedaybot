@@ -92,8 +92,8 @@ func telegramBot() {
         article.Caption = pokeToString(pokemon)
         article.Description = "Choose your Pokemon!"
         article.ThumbURL = ThumbURL
-        article.Width = 150
-        article.Height = 150
+        article.Width = 256
+        article.Height = 256
         article.ParseMode="MarkdownV2"
         inlineConf := tgbotapi.InlineConfig{
             InlineQueryID: update.InlineQuery.ID,
