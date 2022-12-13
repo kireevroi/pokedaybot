@@ -98,7 +98,7 @@ func telegramBot() {
         inlineConf := tgbotapi.InlineConfig{
             InlineQueryID: update.InlineQuery.ID,
             IsPersonal:    true,
-            CacheTime:     1,
+            CacheTime:     3600 * 24,
             Results:       []interface{}{article},
         }
         if _, err := bot.Request(inlineConf); err != nil {
